@@ -32,7 +32,8 @@ ${message}`;
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     
     // 모델 선택 (gemini-1.5-flash 사용)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // 뒤에 -001 을 붙여주세요
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
