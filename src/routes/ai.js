@@ -33,8 +33,8 @@ ${message}`;
     
     // 모델 선택 (gemini-1.5-flash 사용)
     // 뒤에 -001 을 붙여주세요
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
-
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const aiMessage = response.text();
