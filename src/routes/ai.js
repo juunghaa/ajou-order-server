@@ -1,27 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/supabase');
 
-// OpenAI API
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// POST /api/ai/recommend - AI 메뉴 추천
+// POST /api/ai/recommend
 router.post('/recommend', async (req, res) => {
   try {
-    const { message, cafeId } = req.body;
+    const { message, cafeName, menus } = req.body;  // ✅ 프론트에서 받음
     
-    // 해당 카페 메뉴 가져오기
-    const { data: menus } = await supabase
-      .from('menus')
-      .select('name, price, category, description')
-      .eq('cafe_id', cafeId);
+    console.log('🔑 API Key:', OPENAI_API_KEY ? '설정됨' : '❌ 없음');
+    console.log('📩 요청:', { message, cafeName, menuCount: menus?.length });
     
-    // 메뉴 목록을 텍스트로 변환
-    const menuList = menus?.map(m => 
-      `- ${m.name} (${m.price}원, ${m.category}): ${m.description || ''}`
-    ).join('\n') || '메뉴 정보 없음';
+    if (!OPENAI_API_KEY) {
+      return res.json({ 
+        success: false, 
+        message: 'OpenAI API 키가 설정되지 않았어요 🔑' 
+      });
+    }
     
-    // OpenAI API 호출
+    // ✅ 프론트에서 받은 메뉴 목록 사용
+    const menuList = menus?.join('\n- ') || '메뉴 정보 없음';
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -33,12 +32,12 @@ router.post('/recommend', async (req, res) => {
         messages: [
           {
             role: 'system',
-            content: `너는 아주대학교 카페의 친절한 바리스타야. 
+            content: `너는 아주대학교 ${cafeName || '카페'}의 친절한 바리스타야.
 아래 메뉴 목록을 기반으로 고객에게 메뉴를 추천해줘.
-짧고 친근하게 답변해줘. 이모지도 사용해!
+짧고 친근하게 2-3문장으로 답변해줘. 이모지도 사용해!
 
 [카페 메뉴]
-${menuList}`
+- ${menuList}`
           },
           {
             role: 'user',
@@ -51,13 +50,22 @@ ${menuList}`
     });
     
     const data = await response.json();
+    console.log('🤖 OpenAI 응답:', data.error ? data.error : '성공');
+    
+    if (data.error) {
+      return res.json({ 
+        success: false, 
+        message: `API 오류: ${data.error.message}` 
+      });
+    }
+    
     const aiMessage = data.choices?.[0]?.message?.content || '추천을 생성할 수 없어요 😅';
     
     res.json({ success: true, message: aiMessage });
     
   } catch (error) {
-    console.error('AI 추천 실패:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ AI 에러:', error);
+    res.status(500).json({ success: false, message: `서버 오류: ${error.message}` });
   }
 });
 
