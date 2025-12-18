@@ -1,56 +1,50 @@
 const express = require('express');
 const router = express.Router();
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// POST /api/ai/recommend
 router.post('/recommend', async (req, res) => {
   try {
-    const { message, cafeName, menus } = req.body;  // ✅ 프론트에서 받음
+    const { message, cafeName, menus } = req.body;
     
-    console.log('🔑 API Key:', OPENAI_API_KEY ? '설정됨' : '❌ 없음');
-    console.log('📩 요청:', { message, cafeName, menuCount: menus?.length });
+    console.log('🔑 Gemini Key:', GEMINI_API_KEY ? '설정됨' : '❌ 없음');
     
-    if (!OPENAI_API_KEY) {
+    if (!GEMINI_API_KEY) {
       return res.json({ 
         success: false, 
-        message: 'OpenAI API 키가 설정되지 않았어요 🔑' 
+        message: 'AI API 키가 설정되지 않았어요 🔑' 
       });
     }
     
-    // ✅ 프론트에서 받은 메뉴 목록 사용
-    const menuList = menus?.join('\n- ') || '메뉴 정보 없음';
+    const menuList = menus?.slice(0, 30).join('\n- ') || '메뉴 정보 없음';
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `너는 아주대학교 ${cafeName || '카페'}의 친절한 바리스타야.
+    const prompt = `너는 아주대학교 ${cafeName || '카페'}의 친절한 바리스타야.
 아래 메뉴 목록을 기반으로 고객에게 메뉴를 추천해줘.
 짧고 친근하게 2-3문장으로 답변해줘. 이모지도 사용해!
 
 [카페 메뉴]
-- ${menuList}`
-          },
-          {
-            role: 'user',
-            content: message
+- ${menuList}
+
+[고객 질문]
+${message}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 300,
           }
-        ],
-        max_tokens: 300,
-        temperature: 0.8,
-      }),
-    });
+        }),
+      }
+    );
     
     const data = await response.json();
-    console.log('🤖 OpenAI 응답:', data.error ? data.error : '성공');
+    console.log('🤖 Gemini 응답:', data.error ? data.error : '성공');
     
     if (data.error) {
       return res.json({ 
@@ -59,7 +53,8 @@ router.post('/recommend', async (req, res) => {
       });
     }
     
-    const aiMessage = data.choices?.[0]?.message?.content || '추천을 생성할 수 없어요 😅';
+    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text 
+      || '추천을 생성할 수 없어요 😅';
     
     res.json({ success: true, message: aiMessage });
     
