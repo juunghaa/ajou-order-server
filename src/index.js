@@ -5,29 +5,28 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const aiRouter = require('./routes/ai');
-app.use('/api/ai', aiRouter);
-
-// Middleware
+// ✅ Middleware 먼저!
 app.use(cors());
 app.use(express.json());
 
-// ✅ 환경 변수 체크
+// 환경 변수 체크
 console.log('🔍 Checking environment variables...');
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅ Set' : '❌ Missing');
 console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing');
 
-// Routes
+// ✅ Routes (미들웨어 다음에!)
 try {
   const ordersRouter = require('./routes/orders');
   const cafesRouter = require('./routes/cafes');
   const feedbacksRouter = require('./routes/feedbacks');
   const recommendationsRouter = require('./routes/recommendations');
+  const aiRouter = require('./routes/ai');
 
   app.use('/api/orders', ordersRouter);
   app.use('/api/cafes', cafesRouter);
   app.use('/api/feedbacks', feedbacksRouter);
   app.use('/api/recommendations', recommendationsRouter);
+  app.use('/api/ai', aiRouter);
   
   console.log('✅ Routes loaded successfully');
 } catch (error) {
@@ -44,18 +43,19 @@ app.get('/', (req, res) => {
       '/api/orders',
       '/api/cafes', 
       '/api/feedbacks',
-      '/api/recommendations'
+      '/api/recommendations',
+      '/api/ai'
     ]
   });
 });
 
-// ✅ 에러 핸들링
+// 에러 핸들링
 app.use((err, req, res, next) => {
   console.error('Server Error:', err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// ✅ 서버 시작
+// 서버 시작
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
