@@ -6,8 +6,6 @@ router.post('/recommend', async (req, res) => {
     const { message, cafeName, menus } = req.body;
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     
-    console.log('🔑 API Key:', GEMINI_API_KEY ? '있음' : '없음');
-    
     if (!GEMINI_API_KEY) {
       return res.json({ success: false, message: 'API 키가 없어요 🔑' });
     }
@@ -20,9 +18,9 @@ router.post('/recommend', async (req, res) => {
 
 [질문] ${message}`;
 
-    // ✅ gemini-pro 사용 (가장 안정적!)
+    // ✅ v1 API + gemini-1.5-flash 사용
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +31,7 @@ router.post('/recommend', async (req, res) => {
     );
     
     const data = await response.json();
-    console.log('🤖 Gemini:', data.error ? data.error.message : '성공!');
+    console.log('🤖 Gemini:', JSON.stringify(data).substring(0, 200));
     
     if (data.error) {
       return res.json({ success: false, message: `오류: ${data.error.message}` });
