@@ -4,22 +4,22 @@ const router = express.Router();
 router.post('/recommend', async (req, res) => {
   try {
     const { message, cafeName, menus } = req.body;
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
     
-    if (!OPENAI_API_KEY) {
+    if (!GROQ_API_KEY) {
       return res.json({ success: false, message: 'API 키가 없어요 🔑' });
     }
     
     const menuList = menus?.slice(0, 30).join('\n- ') || '메뉴 없음';
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'llama-3.1-8b-instant',
         messages: [
           {
             role: 'system',
@@ -32,7 +32,6 @@ router.post('/recommend', async (req, res) => {
     });
     
     const data = await response.json();
-    console.log('🤖 OpenAI:', data.error ? data.error.message : '성공!');
     
     if (data.error) {
       return res.json({ success: false, message: `오류: ${data.error.message}` });
