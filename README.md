@@ -2,6 +2,15 @@
 
 아주대학교 캠퍼스 카페 모바일 주문 서비스 백엔드 API
 
+## 🔗 프로젝트 링크
+
+| 구분 | 설명 | 주소 |
+|------|------|------|
+| Web Client | React 기반 프론트엔드 | https://github.com/juunghaa/ajou-order-web |
+| Server API | 주문/메뉴 REST API | https://github.com/juunghaa/ajou-order-server |
+| Live Demo (FE) | 실제 서비스 화면 | https://ajou-order-web.vercel.app |
+| Live API (BE) | 배포된 백엔드 서버 | https://ajou-order-server.onrender.com |
+
 ## 🚀 실행 방법
 ```bash
 npm install
