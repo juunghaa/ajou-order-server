@@ -47,8 +47,9 @@ router.post('/recommend', async (req, res) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        max_tokens: 400,  // ✅ 더 긴 답변 허용
-        temperature: 0.7  // ✅ 약간 창의적으로
+        max_completion_tokens: 1024,
+        reasoning_effort: 'low',
+        temperature: 0.7
       })
     });
     
