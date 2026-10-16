@@ -1,5 +1,9 @@
 # AjouOrder Server
 
+> 보안 점검 1단계에서는 주문 API와 카페 수정 API를 일시 중지합니다.
+> `supabase/migrations/20261016_restrict_public_access.sql` 적용 전후 절차는
+> [마이그레이션 안내](supabase/migrations/README.md)를 확인하세요.
+
 아주대학교 캠퍼스 카페 모바일 주문 서비스의 **백엔드 API 서버**입니다.  
 주문 관리, 결제 처리, AI 메뉴 추천, 실시간 상태 업데이트를 담당합니다.
 
