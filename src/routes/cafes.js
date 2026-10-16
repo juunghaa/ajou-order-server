@@ -35,51 +35,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PATCH /api/cafes/:id/status - 카페 영업 상태 변경
-router.patch('/:id/status', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { is_open } = req.body;
-    
-    const { data, error } = await supabase
-      .from('cafes')
-      .update({ 
-        is_open,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    res.json({ success: true, data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+// PATCH /api/cafes/:id/status - 관리자 인증 전까지 일시 중지
+router.patch('/:id/status', (_req, res) => {
+  res.status(503).json({ success: false, error: '관리자 기능을 점검하고 있습니다.' });
 });
 
-// PATCH /api/cafes/:id - 카페 정보 수정
-router.patch('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { wait_time, rating } = req.body;
-    
-    const updateData = { updated_at: new Date().toISOString() };
-    if (wait_time !== undefined) updateData.wait_time = wait_time;
-    if (rating !== undefined) updateData.rating = rating;
-    
-    const { data, error } = await supabase
-      .from('cafes')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    res.json({ success: true, data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+// PATCH /api/cafes/:id - 관리자 인증 전까지 일시 중지
+router.patch('/:id', (_req, res) => {
+  res.status(503).json({ success: false, error: '관리자 기능을 점검하고 있습니다.' });
 });
 
 module.exports = router;
