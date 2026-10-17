@@ -1,11 +1,11 @@
 # AjouOrder Server
 
-> 보안 점검 1단계에서는 주문 API와 카페 수정 API를 일시 중지합니다.
+> 보안 점검 중 새 주문과 관리자 수정 API는 일시 중지합니다.
 > `supabase/migrations/20261016_restrict_public_access.sql` 적용 전후 절차는
 > [마이그레이션 안내](supabase/migrations/README.md)를 확인하세요.
 
 아주대학교 캠퍼스 카페 모바일 주문 서비스의 **백엔드 API 서버**입니다.  
-주문 관리, 결제 처리, AI 메뉴 추천, 실시간 상태 업데이트를 담당합니다.
+현재 카페·메뉴 조회, 서버 견적 계산, AI 메뉴 추천 등을 제공합니다. 주문 생성과 결제 승인은 점검 중입니다.
 
 ---
 
@@ -34,8 +34,7 @@ npm install
 
 ```env
 SUPABASE_URL=YOUR_SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
-TOSS_SECRET_KEY=YOUR_TOSS_SECRET_KEY
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 GROQ_API_KEY=YOUR_GROQ_API_KEY
 ```
 
@@ -49,18 +48,17 @@ npm run dev
 ## 📌 API 엔드포인트
 
 ### 주문 (Orders)
-- GET /api/orders
-- GET /api/orders/:id
-- GET /api/orders/user/:userId
-- POST /api/orders
-- PATCH /api/orders/:id/status
-- GET /api/orders/cafe/:cafeId/next-number
+- POST /api/orders/quote: 메뉴 ID·수량·옵션을 서버 목록과 대조해 금액을 계산합니다. DB 저장이나 결제는 하지 않습니다.
+- 그 밖의 `/api/orders` 경로: 점검 중 503 응답
+
+### 메뉴 (Menus)
+- GET /api/menus/:cafeId: 카페별 메뉴·옵션·가격 조회
 
 ### 카페 (Cafes)
 - GET /api/cafes
 - GET /api/cafes/:id
-- PATCH /api/cafes/:id/status
-- PATCH /api/cafes/:id
+- PATCH /api/cafes/:id/status: 점검 중 503 응답
+- PATCH /api/cafes/:id: 점검 중 503 응답
 
 ### 건의사항 (Feedbacks)
 - GET /api/feedbacks
@@ -79,11 +77,10 @@ npm run dev
 
 ## ⚡ 주요 서버 기능
 
-- 주문 생성 및 상태 관리
-- 카페 영업 상태 및 대기 번호 관리
-- 토스페이먼츠 결제 연동
+- 카페·메뉴 조회와 서버 기준 견적 계산
 - AI 메뉴 추천 (Groq LLM)
-- Supabase Realtime 기반 실시간 주문 상태 업데이트
+
+`src/data/menuCatalog.json`은 웹 저장소의 `src/data/menuData.js` 메뉴 85종을 복사한 점검용 스냅샷입니다. 서버는 요청에 포함된 이름·가격·옵션 가격을 신뢰하지 않고 이 목록에서 다시 계산합니다. 운영 DB의 `menus` 테이블은 현재 비어 있으므로, 결제를 다시 열기 전에 메뉴의 실제 가격과 두 저장소의 동기화 방법을 확정해야 합니다.
 
 ---
 

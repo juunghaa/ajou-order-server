@@ -17,12 +17,14 @@ console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅ Set' : '�
 // ✅ Routes (미들웨어 다음에!)
 try {
   const ordersRouter = require('./routes/orders');
+  const menusRouter = require('./routes/menus');
   const cafesRouter = require('./routes/cafes');
   const feedbacksRouter = require('./routes/feedbacks');
   const recommendationsRouter = require('./routes/recommendations');
   const aiRouter = require('./routes/ai');
 
   app.use('/api/orders', ordersRouter);
+  app.use('/api/menus', menusRouter);
   app.use('/api/cafes', cafesRouter);
   app.use('/api/feedbacks', feedbacksRouter);
   app.use('/api/recommendations', recommendationsRouter);
