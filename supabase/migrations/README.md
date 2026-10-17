@@ -32,3 +32,17 @@ from (values ('orders'), ('cafes'), ('menus')) as x(t);
 The old public server order endpoints and cafe write endpoints are paused in
 the same phase. Later phases must replace them with verified user/admin routes
 and server-side order/payment validation before restoring writes.
+
+## Authenticated order intent preparation
+
+`20261017_order_intents.sql` creates a private table for server-calculated,
+unpaid order drafts. It does not enable checkout or alter historical orders.
+Apply it before setting `ENABLE_ORDER_INTENTS=true` and
+`SUPABASE_SERVICE_ROLE_KEY` on the server. Keep the service-role key on the
+server only. The browser must never receive it. The new route is disabled by
+default and payment confirmation still requires a separate implementation.
+
+After applying the migration, check that `order_intents` has RLS enabled and
+`anon` and `authenticated` have no table privileges. Do not enable the route
+until the server has the correct key and the API tests pass in a non-production
+environment.

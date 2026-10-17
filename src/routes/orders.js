@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { quoteCart, QuoteError } = require('../lib/quoteCart');
+const { createOrderIntentHandler } = require('../lib/createOrderIntent');
+const { getSupabaseAdmin } = require('../config/supabaseAdmin');
 
 // Read-only server quote. The client price and option prices are never used.
 router.post('/quote', (req, res) => {
@@ -12,6 +14,29 @@ router.post('/quote', (req, res) => {
     }
     return res.status(500).json({ success: false, error: '견적을 계산할 수 없습니다.' });
   }
+});
+
+// Disabled by default. Enable only after the order_intents migration and
+// service-role key are configured. This endpoint never creates a paid order.
+router.post('/intents', (req, res) => {
+  if (process.env.ENABLE_ORDER_INTENTS !== 'true') {
+    return res.status(503).json({ success: false, error: '주문 기능을 점검하고 있습니다.' });
+  }
+  const adminClient = getSupabaseAdmin();
+  if (!adminClient) {
+    return res.status(503).json({ success: false, error: '주문 기능을 점검하고 있습니다.' });
+  }
+  let authClient;
+  try {
+    authClient = require('../config/supabase');
+  } catch (_error) {
+    return res.status(503).json({ success: false, error: '주문 기능을 점검하고 있습니다.' });
+  }
+  return createOrderIntentHandler({
+    authClient,
+    adminClient,
+    enabled: true,
+  })(req, res);
 });
 
 // Order creation and management are paused until these endpoints authenticate
