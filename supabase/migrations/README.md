@@ -46,3 +46,24 @@ After applying the migration, check that `order_intents` has RLS enabled and
 `anon` and `authenticated` have no table privileges. Do not enable the route
 until the server has the correct key and the API tests pass in a non-production
 environment.
+
+## Toss test payment confirmation preparation
+
+`20261017_toss_test_confirmation.sql` must run after the order intent migration.
+It adds unique payment references to `orders` and service-role-only RPCs that
+claim an intent and atomically create one paid order. Existing orders are kept.
+
+`POST /api/orders/confirm` requires the signed-in user's bearer token and
+`{ paymentKey, orderId, amount }` from Toss's success redirect. It compares the
+amount with the server-stored intent, claims the intent, then asks Toss to
+confirm using the stored amount. Only a `DONE` response with the exact payment
+key, order ID and amount can create an order. Retries inspect Toss instead of
+sending another confirmation and the database returns the same order after a
+successful finalization. An uncertain Toss result leaves the intent in
+`confirming`; investigate it through Toss before any manual correction.
+
+The route remains disabled until `ENABLE_TOSS_CONFIRMATION=true` is set **after**
+the migration and `TOSS_TEST_SECRET_KEY` (a `test_sk_` or `test_gsk_` secret) are
+configured on the server. Never put this secret in the browser or repository.
+The current web checkout and admin routes stay paused. Unit tests mock Toss;
+the real test payment flow and DB RPCs have not yet been exercised end to end.

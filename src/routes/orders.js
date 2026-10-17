@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { quoteCart, QuoteError } = require('../lib/quoteCart');
 const { createOrderIntentHandler } = require('../lib/createOrderIntent');
+const { confirmOrderHandler } = require('../lib/confirmOrder');
 const { getSupabaseAdmin } = require('../config/supabaseAdmin');
 
 // Read-only server quote. The client price and option prices are never used.
@@ -37,6 +38,25 @@ router.post('/intents', (req, res) => {
     adminClient,
     enabled: true,
   })(req, res);
+});
+
+// Test-key only, disabled until both order migrations and server secrets are ready.
+router.post('/confirm', (req, res) => {
+  if (process.env.ENABLE_TOSS_CONFIRMATION !== 'true') {
+    return res.status(503).json({ success: false, error: '결제 기능을 점검하고 있습니다.' });
+  }
+  const adminClient = getSupabaseAdmin();
+  const secretKey = process.env.TOSS_TEST_SECRET_KEY;
+  if (!adminClient || !/^test_(?:sk|gsk)_/.test(secretKey || '')) {
+    return res.status(503).json({ success: false, error: '결제 기능을 점검하고 있습니다.' });
+  }
+  let authClient;
+  try {
+    authClient = require('../config/supabase');
+  } catch (_error) {
+    return res.status(503).json({ success: false, error: '결제 기능을 점검하고 있습니다.' });
+  }
+  return confirmOrderHandler({ authClient, adminClient, secretKey })(req, res);
 });
 
 // Order creation and management are paused until these endpoints authenticate
