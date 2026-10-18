@@ -1,8 +1,8 @@
 # AjouOrder Server
 
-> 보안 점검 중 새 주문과 관리자 수정 API는 일시 중지합니다.
-> `supabase/migrations/20261016_restrict_public_access.sql` 적용 전후 절차는
-> [마이그레이션 안내](supabase/migrations/README.md)를 확인하세요.
+> **현재 상태 (2026-10-17)**: 사후 점검 결과에 따라 새 주문 생성, 카페 상태 수정, 결제 승인은 **의도적으로 중지**했습니다.
+> 발견한 문제와 남은 한계는 웹 저장소의 [docs/REVIEW.md](https://github.com/juunghaa/ajou-order-web/blob/main/docs/REVIEW.md)에 정리했습니다.
+> 권한 제한 SQL 적용 절차는 [마이그레이션 안내](supabase/migrations/README.md)를 참고하세요.
 
 아주대학교 캠퍼스 카페 모바일 주문 서비스의 **백엔드 API 서버**입니다.  
 현재 카페·메뉴 조회, 서버 견적 계산, AI 메뉴 추천 등을 제공합니다. 주문 생성과 결제 승인은 점검 중입니다.
@@ -63,15 +63,22 @@ npm run dev
 ### 건의사항 (Feedbacks)
 - GET /api/feedbacks
 - POST /api/feedbacks
-- PATCH /api/feedbacks/:id/status
 
 ### 메뉴 추천 (Recommendations)
 - GET /api/recommendations
 - POST /api/recommendations
-- PATCH /api/recommendations/:id/vote
 
-### 🤖 AI 추천 (Groq LLM)
+### 🤖 AI 추천 (Groq LLM, `openai/gpt-oss-20b`)
 - POST /api/ai/recommend
+
+---
+
+## ⚠️ 알려진 한계
+
+- 건의사항·추천 POST는 입력 검증과 사용자 인증이 없습니다.
+- CORS는 전체 허용이고, AI 추천 API에는 인증과 호출 제한이 없습니다.
+- 서버는 anon 키로 Supabase에 접근합니다. 접근 제어는 RLS 정책에 의존합니다.
+- 주문 생성·결제 승인·관리자 인증은 현재 동작하는 서버 경로에 구현되지 않았습니다.
 
 ---
 
@@ -88,10 +95,8 @@ npm run dev
 
 - Node.js
 - Express.js
-- Supabase (PostgreSQL, Realtime)
-- Supabase Auth
-- 토스페이먼츠 SDK
-- Groq API (Llama 3.1)
+- Supabase (PostgreSQL)
+- Groq API (`openai/gpt-oss-20b`)
 - CORS
 
 ---
