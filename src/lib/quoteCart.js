@@ -60,8 +60,8 @@ const normalizeOptions = (menu, submittedOptions) => {
   return { options, extraPrice };
 };
 
-const quoteCart = ({ cafeId, items } = {}) => {
-  const cafe = getMenuCatalog(cafeId);
+const quoteCart = async ({ cafeId, items } = {}, catalogLoader = getMenuCatalog) => {
+  const cafe = await catalogLoader(cafeId);
   if (!cafe) throw new QuoteError('존재하지 않는 카페입니다.');
   if (!Array.isArray(items) || items.length === 0 || items.length > 30) {
     throw new QuoteError('메뉴는 1~30종류까지 선택할 수 있습니다.');

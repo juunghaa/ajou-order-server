@@ -3,9 +3,9 @@ const router = express.Router();
 const { quoteCart, QuoteError } = require('../lib/quoteCart');
 
 // Read-only server quote. The client price and option prices are never used.
-router.post('/quote', (req, res) => {
+router.post('/quote', async (req, res) => {
   try {
-    return res.json({ success: true, data: quoteCart(req.body) });
+    return res.json({ success: true, data: await quoteCart(req.body) });
   } catch (error) {
     if (error instanceof QuoteError) {
       return res.status(400).json({ success: false, error: error.message });

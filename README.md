@@ -48,7 +48,7 @@ npm run dev
 ## 📌 API 엔드포인트
 
 ### 주문 (Orders)
-- POST /api/orders/quote: 메뉴 ID·수량·옵션을 서버 목록과 대조해 금액을 계산합니다. DB 저장이나 결제는 하지 않습니다.
+- POST /api/orders/quote: 메뉴 ID·수량·옵션을 Supabase 메뉴 데이터와 대조해 금액을 계산합니다. DB 저장이나 결제는 하지 않습니다.
 - 그 밖의 `/api/orders` 경로: 점검 중 503 응답
 
 ### 메뉴 (Menus)
@@ -87,7 +87,7 @@ npm run dev
 - 카페·메뉴 조회와 서버 기준 견적 계산
 - AI 메뉴 추천 (Groq LLM)
 
-`src/data/menuCatalog.json`은 웹 저장소의 `src/data/menuData.js` 메뉴 85종을 복사한 점검용 스냅샷입니다. 서버는 요청에 포함된 이름·가격·옵션 가격을 신뢰하지 않고 이 목록에서 다시 계산합니다. 운영 DB의 `menus` 테이블은 현재 비어 있으므로, 결제를 다시 열기 전에 메뉴의 실제 가격과 두 저장소의 동기화 방법을 확정해야 합니다.
+메뉴·기본 가격·옵션 가격의 운영 원천은 Supabase `menus` 테이블입니다. 메뉴 조회와 주문 견적은 모두 이 테이블을 읽으며, 요청에 포함된 가격은 사용하지 않습니다. `src/data/menuCatalog.json`은 최초 데이터 이관의 원본과 회귀 테스트 자료로만 보관합니다. 기존 85종을 카페별로 복제한 219행의 이관 SQL은 [마이그레이션 안내](supabase/migrations/README.md)에 설명되어 있습니다. 데이터베이스 이관 후 이 서버 버전을 배포해야 합니다.
 
 ---
 
