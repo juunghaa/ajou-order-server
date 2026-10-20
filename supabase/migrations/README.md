@@ -32,3 +32,18 @@ from (values ('orders'), ('cafes'), ('menus')) as x(t);
 The old public server order endpoints and cafe write endpoints are paused in
 the same phase. Later phases must replace them with verified user/admin routes
 and server-side order/payment validation before restoring writes.
+
+## Menu catalog migration
+
+`20261020_menu_catalog.sql` moves the existing 85 menu definitions into the
+empty `public.menus` table for four cafes (219 rows). It preserves the original
+base prices, option prices, categories, image paths, and ordering. It also
+changes `cafe_id` to match `cafes.id` (text), adds a foreign key, and makes
+menu codes unique within a cafe. It does not change order, payment, or admin
+permissions.
+
+Run the SQL in the Supabase SQL Editor as one transaction **before** deploying
+the API version that reads menus from the database. It aborts if `menus` is not
+empty or the resulting cafe row counts differ from 67/67/18/67. Afterward,
+verify that each cafe's menus can be read through the public Data API and that
+the API's `/api/menus/:cafeId` and `/api/orders/quote` agree on prices.

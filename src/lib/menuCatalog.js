@@ -1,21 +1,36 @@
-const catalog = require('../data/menuCatalog.json');
-
-const cafes = {
-  'ajou-cafe-1': { source: catalog.PANDOROSY_MENUS, name: '팬도로시 학생회관점' },
-  'ajou-cafe-2': { source: catalog.PANDOROSY_MENUS, name: '팬도로시 도서관점' },
-  'ajou-cafe-3': { source: catalog.CAFE_ING_MENUS, name: 'CAFÉ ING' },
-  'ajou-cafe-4': { source: catalog.PANDOROSY_MENUS, name: '다산관 카페' },
-};
-
-const getMenuCatalog = (cafeId) => {
-  const cafe = cafes[cafeId];
+const getMenuCatalog = async (cafeId, client = require('../config/supabase')) => {
+  const { data: cafe, error: cafeError } = await client
+    .from('cafes')
+    .select('id, name')
+    .eq('id', cafeId)
+    .maybeSingle();
+  if (cafeError) throw cafeError;
   if (!cafe) return null;
 
+  const { data: rows, error: menuError } = await client
+    .from('menus')
+    .select('sku, name, name_en, price, category, image_url, is_popular, is_new, options')
+    .eq('cafe_id', cafeId)
+    .order('sort_order', { ascending: true });
+  if (menuError) throw menuError;
+
+  const menus = rows.map((row) => ({
+    id: row.sku,
+    name: row.name,
+    nameEn: row.name_en,
+    price: row.price,
+    category: row.category,
+    imageUrl: row.image_url,
+    isPopular: row.is_popular,
+    isNew: row.is_new,
+    options: row.options,
+  }));
+
   return {
-    cafeId,
+    cafeId: cafe.id,
     cafeName: cafe.name,
-    categories: cafe.source.categories,
-    menus: cafe.source.menus,
+    categories: [...new Set(menus.map((menu) => menu.category))],
+    menus,
   };
 };
 
