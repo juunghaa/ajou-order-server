@@ -47,3 +47,26 @@ the API version that reads menus from the database. It aborts if `menus` is not
 empty or the resulting cafe row counts differ from 67/67/18/67. Afterward,
 verify that each cafe's menus can be read through the public Data API and that
 the API's `/api/menus/:cafeId` and `/api/orders/quote` agree on prices.
+
+## Scoped cafe manager access
+
+Apply `20261020_scoped_cafe_admin.sql` before deploying the admin API and web
+page. It adds `admin_cafe_access(user_id, cafe_id)` and grants authenticated
+users read access to their own assignments only. Only an assigned manager can
+change a cafe's `is_open` column. The existing public cafe read remains open;
+order writes and order management stay closed.
+
+The project owner creates a normal Supabase Auth account for each manager,
+then uses the Supabase dashboard's SQL Editor or Table Editor to insert one
+`admin_cafe_access` row for each cafe that manager may control. Get the user's
+ID from Authentication > Users and the cafe ID from the `cafes` table. For
+example, use a placeholder ID in a query before entering the real value:
+
+```sql
+insert into public.admin_cafe_access (user_id, cafe_id)
+values ('<manager-auth-user-uuid>', 'ajou-cafe-1');
+```
+
+Add up to four rows to grant more cafes. Delete an assignment row in the
+dashboard to revoke access. Do not use signup fields or user metadata as
+authorization. This migration creates **no** manager assignment by itself.

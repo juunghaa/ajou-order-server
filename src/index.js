@@ -22,6 +22,7 @@ try {
   const feedbacksRouter = require('./routes/feedbacks');
   const recommendationsRouter = require('./routes/recommendations');
   const aiRouter = require('./routes/ai');
+  const { createAdminRouter } = require('./routes/admin');
 
   app.use('/api/orders', ordersRouter);
   app.use('/api/menus', menusRouter);
@@ -29,6 +30,7 @@ try {
   app.use('/api/feedbacks', feedbacksRouter);
   app.use('/api/recommendations', recommendationsRouter);
   app.use('/api/ai', aiRouter);
+  app.use('/api/admin', createAdminRouter());
   
   console.log('✅ Routes loaded successfully');
 } catch (error) {
