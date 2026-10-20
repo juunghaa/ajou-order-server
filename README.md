@@ -1,11 +1,11 @@
 # AjouOrder Server
 
-> **현재 상태 (2026-10-17)**: 사후 점검 결과에 따라 새 주문 생성, 카페 상태 수정, 결제 승인은 **의도적으로 중지**했습니다.
+> **현재 상태 (2026-10-20)**: 담당 카페의 영업 상태 관리만 권한 검사와 함께 다시 열었습니다. 새 주문 생성, 관리자 주문 관리, 결제 승인은 계속 중지되어 있습니다.
 > 발견한 문제와 남은 한계는 웹 저장소의 [docs/REVIEW.md](https://github.com/juunghaa/ajou-order-web/blob/main/docs/REVIEW.md)에 정리했습니다.
 > 권한 제한 SQL 적용 절차는 [마이그레이션 안내](supabase/migrations/README.md)를 참고하세요.
 
 아주대학교 캠퍼스 카페 모바일 주문 서비스의 **백엔드 API 서버**입니다.  
-현재 카페·메뉴 조회, 서버 견적 계산, AI 메뉴 추천 등을 제공합니다. 주문 생성과 결제 승인은 점검 중입니다.
+현재 카페·메뉴 조회, 서버 견적 계산, 담당 카페의 영업 상태 관리, AI 메뉴 추천 등을 제공합니다. 주문 생성과 결제 승인은 점검 중입니다.
 
 ---
 
@@ -60,6 +60,12 @@ npm run dev
 - PATCH /api/cafes/:id/status: 점검 중 503 응답
 - PATCH /api/cafes/:id: 점검 중 503 응답
 
+### 관리자 (Admin)
+- GET /api/admin/cafes: 로그인한 관리자가 담당하는 카페만 조회
+- PATCH /api/admin/cafes/:id/status: 담당 카페의 영업 상태만 변경
+
+관리자 API는 Supabase 로그인 토큰을 서버에서 확인하고, 담당 카페 배정을 다시 검사합니다. 데이터베이스 RLS에서도 배정된 카페에만 `is_open` 변경을 허용합니다. 최초 계정 배정 방법은 [마이그레이션 안내](supabase/migrations/README.md)를 참고하세요. 주문 관리 API와 화면은 계속 닫혀 있습니다.
+
 ### 건의사항 (Feedbacks)
 - GET /api/feedbacks
 - POST /api/feedbacks
@@ -78,7 +84,7 @@ npm run dev
 - 건의사항·추천 POST는 입력 검증과 사용자 인증이 없습니다.
 - CORS는 전체 허용이고, AI 추천 API에는 인증과 호출 제한이 없습니다.
 - 서버는 anon 키로 Supabase에 접근합니다. 접근 제어는 RLS 정책에 의존합니다.
-- 주문 생성·결제 승인·관리자 인증은 현재 동작하는 서버 경로에 구현되지 않았습니다.
+- 주문 생성·결제 승인·관리자 주문 관리는 현재 동작하는 서버 경로에 구현되지 않았습니다.
 
 ---
 
